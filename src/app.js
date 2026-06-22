@@ -19,27 +19,58 @@ if (process.argv.length === 3) {
 const filePath = path.join(destination, path.basename(sourceFile));
 
 async function move(file, to, fullPath) {
-  try {
-    const sourceContent = await fs.readFile(`./${file}`, 'utf-8');
+  let isDirectory = false;
 
-    let isDirectory = false;
+  try {
+    const stats = await fs.stat(to);
+
+    isDirectory = stats.isDirectory();
+  } catch {
+    isDirectory = false;
+  }
+
+  if (destination.endsWith('/') || destination.endsWith('\\')) {
+    try {
+      if (isDirectory) {
+        await fs.rename(file, fullPath);
+      } else {
+        console.error('directory is not exist');
+        process.exit(0);
+      }
+    } catch (err) {
+      console.error('Something went wrong');
+      process.exit(0);
+    }
+  } else if (isDirectory) {
+    try {
+      await fs.rename(file, fullPath);
+    } catch {
+      console.error('directory does not exist');
+      process.exit(0);
+    }
+  } else {
+    const parentDirectory = path.dirname(to);
+    let isParentDirectoryExists = false;
 
     try {
-      const stats = await fs.stat(to);
+      const stats = await fs.stat(parentDirectory);
 
-      isDirectory = stats.isDirectory();
+      isParentDirectoryExists = stats.isDirectory();
     } catch {
-      isDirectory = false;
+      isParentDirectoryExists = false;
     }
 
-    if (isDirectory) {
-      await fs.writeFile(fullPath, sourceContent);
-      await fs.unlink(file);
-    } else {
-      await fs.rename(file, to);
+    if (!isParentDirectoryExists) {
+      console.error('Parent directory is no exist');
+      process.exit(0);
     }
-  } catch (err) {
-    console.error(err);
+
+    try {
+      await fs.rename(file, to);
+    } catch {
+      console.error('Source file is not exist');
+      process.exit(0);
+    }
   }
 }
 
