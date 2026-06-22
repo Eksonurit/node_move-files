@@ -29,7 +29,7 @@ async function move(file, to, fullPath) {
     isDirectory = false;
   }
 
-  if (destination.endsWith('/') || destination.endsWith('\\')) {
+  if (to.endsWith('/') || to.endsWith('\\')) {
     try {
       if (isDirectory) {
         await fs.rename(file, fullPath);
@@ -49,22 +49,6 @@ async function move(file, to, fullPath) {
       process.exit(0);
     }
   } else {
-    const parentDirectory = path.dirname(to);
-    let isParentDirectoryExists = false;
-
-    try {
-      const stats = await fs.stat(parentDirectory);
-
-      isParentDirectoryExists = stats.isDirectory();
-    } catch {
-      isParentDirectoryExists = false;
-    }
-
-    if (!isParentDirectoryExists) {
-      console.error('Parent directory is no exist');
-      process.exit(0);
-    }
-
     try {
       await fs.rename(file, to);
     } catch {
